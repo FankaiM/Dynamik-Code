@@ -12,26 +12,39 @@ function rob = berechne_id(rob)
 rob.tau_id=zeros(rob.N_Q,1);
 
 %2. Kinematik berechnen
-rob=berechne_dk_positionen(rob);
+rob=berechne_dk_positionen_vektorkette(rob);%%%veranderung
 rob=berechne_dk_geschwindigkeiten(rob);
 rob=berechne_dk_beschleunigungen(rob);
-rob=berechne_dk_jacobis(rob);
+rob=berechne_dk_jacobis(rob,'ttt');%%%veranderung
 
 %3. Berechnung fuer alle Koerper: Impuls- und Drallaenderung
 for i=1:length(rob.kl)
     
     %Absolutbeschleunigung des Schwerpunkts:
-%    rob.kl(i).Bi_ddot_r_s = ?;
+    %%a_i_is=a_i_i+a_i_s
+    %%a_i_is=a_i_i+omega_dot_i_i x r_is + omega_i_i x omega_i_i x r_is 
+    Bi_ddot_r_is= tilde(rob.kl(i).Bi_dot_omega)*rob.kl(i).Bi_r_s+...
+    tilde(rob.kl(i).Bi_dot_omega)*tilde(rob.kl(i).Bi_dot_omega)*rob.kl(i).Bi_r_s;
+    rob.kl(i).Bi_ddot_r_s = rob.kl(i).Bi_ddot_r_i+Bi_ddot_r_is;
     
     %Impulsaenderung - Schwerkraft
-%    F = ?;
+    %%--Impulsaenderung
+    pi=rob.kl(i).m*rob.kl(i).Bi_ddot_r_s;
+    %%--eingepraegte Schwerkraft wird in i-KOSY transformiert
+    Fe=rob.kl(i).A_i0*rob.kl(i).m*rob.B0_g;
+   
+    F = pi-Fe;
     
     %Drallaenderung - Moment der Schwerkraft
-%    T = ?;
+    %%--eingepraegte Moment bezuelich auf Schwerpunkt
+    Me=tilde(rob.kl(i).Bi_r_s)*Fe;
+    %%--Drallaenderung
+    L_dot_s=rob.kl(i).I_o*rob.kl(i).Bi_dot_omega;
     
+    T =L_dot_s-Me;
     
     %Projektion auf zwangsfreie Richtungen und Addition zu tau_id
-    %rob.tau_id= ?;
+    rob.tau_id= [rob.kl(i).Bi_Jt_o;rob.kl(i).Bi_Jr]'*[F;T];
 end
 end
 
