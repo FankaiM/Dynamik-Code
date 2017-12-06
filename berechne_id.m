@@ -39,9 +39,10 @@ for i=1:length(rob.kl)
     %%--eingepraegte Moment bezuelich auf Schwerpunkt
     Me=tilde(rob.kl(i).Bi_r_s)*Fe;
     %%--Drallaenderung
-    L_dot_s=rob.kl(i).I_o*rob.kl(i).Bi_dot_omega;
+    L_dot_s=rob.kl(i).I_o*rob.kl(i).Bi_dot_omega+tilde(rob.kl(i).Bi_dot_omega)*rob.kl(i).I_o*rob.kl(i).Bi_dot_omega;
+    mrs=rob.kl(i).m*tilde(rob.kl(i).Bi_r_s)*rob.kl(i).Bi_ddot_r_i;
     
-    T =L_dot_s-Me;
+    T =L_dot_s+mrs-Me;
     
     %Projektion auf zwangsfreie Richtungen und Addition zu tau_id
     rob.tau_id= [rob.kl(i).Bi_Jt_o;rob.kl(i).Bi_Jr]'*[F;T];
